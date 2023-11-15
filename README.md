@@ -50,21 +50,23 @@ display-name: erc20TokenTransfer
 
 5. Also open MM and create a new network with the DevNet URL.
 
-6. Paste the deployed contract address from step 2 into index.tsx as well.
+7. Also in MM, add the token contract address as a custom token.
 
-7. Edit the public address of the sender (the wallet you deployed from) in index.tsx.
+8. Paste the deployed contract address from step 2 into index.tsx as well.
 
-8. Deploy To Tenderly
+9. Edit the public address of the sender (the wallet you deployed from) in index.tsx.
+
+10.  Deploy To Tenderly
  ```
 npx hardhat run scripts/deployToken.ts --network tenderly
 ```
 
-9.  Run the front end
+11.  Run the front end
 ```
 cd ../pages
 npm run dev
 ```
-10. In your brower, open up localhost:3000. Click the Transfer Button.
+12. In your brower, open up localhost:3000. Click the Transfer Button.
 
-11. The token.sol that has been verified to work on Sepolia is at: https://gist.github.com/TravisLeeRichardson/f7545255d49dea6834838892a17b5f2d
+13. The token.sol that has been verified to work on Sepolia is at: https://gist.github.com/TravisLeeRichardson/f7545255d49dea6834838892a17b5f2d
 
