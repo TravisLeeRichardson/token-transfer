@@ -7,21 +7,19 @@ import token from '../pages/abi/Token.json';
 import * as dotenv from "dotenv";
 dotenv.config();
 
-
 const tokenABI = token.Token.abi; 
-const tokenAddress = "0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f" //Sepolia Deployment
-//const tokenAddress = "0xC5b3FE820407650830cA5ce4Ed524481D732Ed49" //Tenderly Deployment
+const tokenAddress = "0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f" //Sepolia Deployment (paste your contract address here)
 
-// Tenderly DevNet
-//const provider = new ethers.providers.JsonRpcProvider("https://rpc.vnet.tenderly.co/devnet/erc20tokentransfer/142549d2-3369-4003-86b7-dc1f5515d181");
-// Sepolia
-const provider = new ethers.providers.JsonRpcProvider(process.env.TENDERLY_SEPOLIA_RPC);
+// Tenderly DevNet (paste your devnet here)
+const provider = new ethers.providers.JsonRpcProvider("https://rpc.vnet.tenderly.co/devnet/erc20tokentransfer/cdc34d99-ad8d-41a2-a648-f4c867c5dc33");
 
-const signer = provider.getSigner();
+const privateKey = 'fa5568408b1f994003a17d4c91a7b2a71d7ea1175e035753167226c62e0f4db5'; //dummy wallet key (paste your key here)
+const wallet = new ethers.Wallet(privateKey, provider);
+const signer = wallet.connect(provider);
 
 const tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
-const senderAddress = "0xC305f4b9925b9eC6b3D0FCC42B7b22F1245A5011";
-const receiverAddress = "0xdb623c0F74d4ed5af4B254327147c4aC7E5d3fAC";
+const senderAddress = "0xC305f4b9925b9eC6b3D0FCC42B7b22F1245A5011"; // (paste your public wallet address here for sender)
+const receiverAddress = "0xdb623c0F74d4ed5af4B254327147c4aC7E5d3fAC"; // (paste your public wallet address here for receiver)
 
 const Home: NextPage = () => {
   const [isTransferring, setIsTransferring] = useState(false);

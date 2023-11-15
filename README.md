@@ -6,7 +6,7 @@
 
 ## How to install:
 
-1. Deploy To Sepolia
+1. Deploy Contract To Sepolia
  ```
 cd hardhat
 npx hardhat run scripts/deployToken.ts --network sepolia
@@ -50,16 +50,11 @@ display-name: erc20TokenTransfer
 
 5. Also open MM and create a new network with the DevNet URL.
 
-7. Also in MM, add the token contract address as a custom token.
+7. Also in MM, add the token contract address as a custom token. Do this for both the sender and receiver accounts.
 
-8. Paste the deployed contract address from step 2 into index.tsx as well.
+8. Paste the deployed contract address from step 2 into index.tsx as well. This should be the contract on Sepolia. 
 
-9. Edit the public address of the sender (the wallet you deployed from) in index.tsx.
-
-10.  Deploy To Tenderly
- ```
-npx hardhat run scripts/deployToken.ts --network tenderly
-```
+9. Edit the two public addresses of the sender and receiver you wish to test (the sender is the wallet you deployed from) in index.tsx.
 
 11.  Run the front end
 ```
@@ -68,5 +63,9 @@ npm run dev
 ```
 12. In your brower, open up localhost:3000. Click the Transfer Button.
 
-13. The token.sol that has been verified to work on Sepolia is at: https://gist.github.com/TravisLeeRichardson/f7545255d49dea6834838892a17b5f2d
+13. Open up MM and check that the sender account is decremented by 1 TOK, and the receiver account is incremented by 1 TOK. Should be 999 TOK for sender now and 1 TOK for receiver.
+
+
+CREDITS:
+Token.sol was taken from Dapp University public GitHub Repo here: https://github.com/dappuniversity/erc20_live_coding/blob/main/Token.sol
 
