@@ -10,7 +10,7 @@ dotenv.config();
 const tokenABI = token.Token.abi; 
 const tokenAddress = "0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f" //Sepolia Deployment (paste your contract address here)
 
-// Tenderly DevNet (paste your devnet here)
+// Tenderly DevNet (paste your devnet below)
 const provider = new ethers.providers.JsonRpcProvider("https://rpc.vnet.tenderly.co/devnet/erc20tokentransfer/cdc34d99-ad8d-41a2-a648-f4c867c5dc33");
 
 const privateKey = 'fa5568408b1f994003a17d4c91a7b2a71d7ea1175e035753167226c62e0f4db5'; //dummy wallet key (paste your key here)

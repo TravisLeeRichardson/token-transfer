@@ -65,6 +65,11 @@ npm run dev
 
 13. Open up MM and check that the sender account is decremented by 1 TOK, and the receiver account is incremented by 1 TOK. Should be 999 TOK for sender now and 1 TOK for receiver.
 
+NOTE: Every time you spin up a new DevNet (They have a 90 minute expiry) you need to do the following:
+--Copy and Paste the new DEVNET RPC URL into the index.tsx file.
+--Copy and Paste the new DEVNET RPC URL into MetaMask as a new Network, then change your Metamask to that network.
+
+NOTE: If you redploy your token.sol contract for any reason, in addition, you will need to update your YAML file with the new contract address, update the index.tsx with the new contract address, then respawn a DevNet and do what the previous note says.
 
 CREDITS:
 Token.sol was taken from Dapp University public GitHub Repo here: https://github.com/dappuniversity/erc20_live_coding/blob/main/Token.sol
