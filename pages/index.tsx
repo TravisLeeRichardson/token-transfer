@@ -141,7 +141,7 @@ const Home = () => {
         </span>
         </h1>
         <h3 className="mt-8 mb-24 text-4xl text-white">
-            Send Your Tokens Wallet to Wallet on a Tenderly DevNet
+            Send An ERC20 Token Using a Tenderly DevNet
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
             {/* Sender Wallet */}
