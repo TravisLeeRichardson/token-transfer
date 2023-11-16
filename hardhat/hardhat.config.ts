@@ -44,7 +44,7 @@ const config: HardhatUserConfig = {
   },
   tenderly: {
     username: "tlrichar",
-    project: "project",
+    project: "token-transfer",
   },
   verify: {
     etherscan: {
@@ -53,16 +53,15 @@ const config: HardhatUserConfig = {
   }
 };
 
-//do later if needed. 
-/* task("verifyExistingMS", "Verifies deployed MultiSigWallet instance")
+ task("verifyExistingToken", "Verifies deployed Token instance")
   .addParam("address")
   .setAction(async (args, hre) => {
     await hre.run("compile");
-    console.log("Verifying MS", args.address);
+    console.log("Verifying Token ", args.address);
     await hre.tenderly.verify({
-      name: "MultiSigWallet",
+      name: "Token",
       address: args.address,
     });
-  }); */
+  }); 
 
 export default config;

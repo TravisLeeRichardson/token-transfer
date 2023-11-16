@@ -5,10 +5,12 @@
     "main": "index.js",
     "scripts": {
         "deploy:tenderly": "npx hardhat run scripts/deploy.ts --network tenderly",
-        "devnet:minimultisigtests:new": "npm run tenderly:devnet:new mini-multisig mini-multisig-tests 736031",
-        "stage:devnet": "npm run devnet:minimultisigtests:new && hardhat run scripts/deploy.ts --network tenderly",
+        "deploy:depolia": "npx hardhat run scripts/deploy.ts --network sepolia",
+        "deploy:tenderly-sepolia": "npx hardhat run scripts/deploy.ts --network sepoliaTenderly",
+        "devnet:token-transfer:new": "npm run tenderly:devnet:new token-transfer erc20tokentransfer 11155111",
+        "stage:devnet": "npm run devnet:token-transfer:new && hardhat run scripts/deploy.ts --network tenderly",
         "tenderly:devnet:new": "ts-node lib/devnet.new.ts",
-        "test:devnet": "npm run devnet:minimultisigtests:new && hardhat test --network tenderly"
+        "test:devnet": "npm run devnet:token-transfer:new && hardhat test --network tenderly"
     },
     "keywords": [],
     "author": "",
