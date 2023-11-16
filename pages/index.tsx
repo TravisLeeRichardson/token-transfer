@@ -136,7 +136,7 @@ const Home = () => {
       </Head>
         <h1 className="text-8xl font-bold text-center">
         <span className="to-blue-500 bg-clip-text">
-            Token Transfer 🧰
+            Token Transfer 💰
            
         </span>
         </h1>
