@@ -1,101 +1,270 @@
 import { ethers } from "ethers";
-import { useState } from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit'
-import type { NextPage } from 'next'
-import Head from 'next/head'
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
 import token from '../pages/abi/Token.json';
 import * as dotenv from "dotenv";
 dotenv.config();
 
-const tokenABI = token.Token.abi; 
-const tokenAddress = "0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f" //Sepolia Deployment (paste your contract address here)
+const Home = () => {
+    const [tokenAddress, setTokenAddress] = useState<string>("0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f");
+    const [providerUrl, setProviderUrl] = useState<string>("https://sepolia.gateway.tenderly.co/7e3xV20O5VnxjBOvKb0wYy");
+    const [privateKey, setPrivateKey] = useState<string>('fa5568408b1f994003a17d4c91a7b2a71d7ea1175e035753167226c62e0f4db5');
+    const [senderAddress, setSenderAddress] = useState<string>("0xC305f4b9925b9eC6b3D0FCC42B7b22F1245A5011");
+    const [receiverAddress, setReceiverAddress] = useState<string>("0xdb623c0F74d4ed5af4B254327147c4aC7E5d3fAC");
+    const [senderBalance, setSenderBalance] = useState<string>('');
+    const [receiverBalance, setReceiverBalance] = useState<string>('');
+    const [isTransferring, setIsTransferring] = useState<boolean>(false);
+    const [isApproving, setIsApproving] = useState<boolean>(false);
+    const [allowance, setAllowance] = useState<string>('0');
+    const [approveAmount, setApproveAmount] = useState<string>('0');
+    const [sendAmount, setSendAmount] = useState<number>(0);
+    const [networkName, setNetworkName] = useState<string>('');
+    const [tokenContract, setTokenContract] = useState<ethers.Contract | null>(null);
+    const [provider, setProvider] = useState<ethers.providers.JsonRpcProvider | null>(null);
+    const [wallet, setWallet] = useState<ethers.Wallet | null>(null);
 
-// Tenderly DevNet (paste your devnet below)
-const provider = new ethers.providers.JsonRpcProvider("https://rpc.vnet.tenderly.co/devnet/erc20tokentransfer/cdc34d99-ad8d-41a2-a648-f4c867c5dc33");
 
-const privateKey = 'fa5568408b1f994003a17d4c91a7b2a71d7ea1175e035753167226c62e0f4db5'; //dummy wallet key (paste your key here)
-const wallet = new ethers.Wallet(privateKey, provider);
-const signer = wallet.connect(provider);
+  useEffect(() => {
+    const newProvider = new ethers.providers.JsonRpcProvider(providerUrl);
+    setProvider(newProvider);
+    const newWallet = new ethers.Wallet(privateKey, newProvider);
+    setWallet(newWallet);
+    const newTokenContract = new ethers.Contract(tokenAddress, token.Token.abi, newWallet);
+    setTokenContract(newTokenContract);
 
-const tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
-const senderAddress = "0xC305f4b9925b9eC6b3D0FCC42B7b22F1245A5011"; // (paste your public wallet address here for sender)
-const receiverAddress = "0xdb623c0F74d4ed5af4B254327147c4aC7E5d3fAC"; // (paste your public wallet address here for receiver)
+    const fetchBalances = async () => {
+        try {
+            let balance = await newTokenContract.balanceOf(senderAddress);
+            setSenderBalance(ethers.utils.formatUnits(balance, 18));
+            balance = await newTokenContract.balanceOf(receiverAddress);
+            setReceiverBalance(ethers.utils.formatUnits(balance, 18));
+        } catch (error) {
+            console.error("Error fetching sender balance:", error);
+        }
+    };
 
-const Home: NextPage = () => {
-  const [isTransferring, setIsTransferring] = useState(false);
-  const sendAmount = ethers.utils.parseUnits("1", 18);
+    fetchBalances();
 
-  const handleTransferClick = async () => {
-    setIsTransferring(true);
+    if (providerUrl.includes('sepolia')) setNetworkName('Sepolia-Tenderly');
+    else if (providerUrl.includes('devnet')) setNetworkName('Tenderly DevNet');
+    else setNetworkName('Invalid Network');
+  }, [providerUrl, privateKey, tokenAddress]);
+
+  const handleApproveClick = async () => {
+    
+    try {
+      // Approve the senderAddress to spend tokens
+      setIsApproving(true);
+      console.log("Approving...");
+      let approveTx = await tokenContract.approve(senderAddress, ethers.utils.parseUnits(sendAmount.toString(), 18)); //send amount is in wei
+      await approveTx.wait();
+      setApproveAmount(ethers.utils.formatUnits(sendAmount, 18));
+
+      const allowance = await tokenContract.allowance(senderAddress, senderAddress); // Owner = Spender
+       setAllowance(ethers.utils.formatUnits(allowance, 18));
+       console.log("Allowance Granted:", ethers.utils.formatUnits(allowance, 18));
+
+      setIsApproving(false);
+      console.log("Approved for send.");
+    } catch (error) {
+      setIsApproving(false);
+      console.error("Approve failed:", error);
+    }
+  };
+
+  const handleSendClick = async () => {
+    
 
     try {
+        setIsTransferring(true);
 
-      // Check balances before the Send
-      let senderBalance = await tokenContract.balanceOf(senderAddress);
-      let receiverBalance = await tokenContract.balanceOf(receiverAddress);
-      console.log("Sender balance before transfer:", ethers.utils.formatUnits(senderBalance, 18));
-      console.log("Receiver balance before transfer:", ethers.utils.formatUnits(receiverBalance, 18));
-     
-      // Approve the senderAddress to spend tokens
-      let approveTx = await tokenContract.approve(senderAddress, sendAmount);
-      await approveTx.wait();
-      console.log("Approved for transfer.");
+       // Check Allowance
+       const allowance = await tokenContract.allowance(senderAddress, senderAddress); // Owner = Spender
+       setAllowance(ethers.utils.formatUnits(allowance, 18));
+       console.log("Allowance Granted:", ethers.utils.formatUnits(allowance, 18));
 
-      // Check Allowance
-      const allowance = await tokenContract.allowance(senderAddress, senderAddress); // Owner = Spender
-      console.log("Allowance Granted:", ethers.utils.formatUnits(allowance, 18));
+       if (allowance < sendAmount) {
+         console.log("Approving...");
+         handleApproveClick();
+       }
 
-      // Send the tokens
-      console.log("Sending...", ethers.utils.formatUnits(sendAmount, 18));
-      const tx = await tokenContract.transferFrom(senderAddress, receiverAddress, sendAmount);
-      await tx.wait();
-      console.log("Send complete.");
+       if (allowance >= sendAmount) {
+            
+            // Get the wallet balances before the send
+            let senderBalance = await tokenContract.balanceOf(senderAddress);
+            let receiverBalance = await tokenContract.balanceOf(receiverAddress);
+            setSenderBalance(ethers.utils.formatUnits(senderBalance, 18));
+            setReceiverBalance(ethers.utils.formatUnits(receiverBalance, 18));
+            console.log("Sender balance before transfer:", ethers.utils.formatUnits(senderBalance, 18));
+            console.log("Receiver balance before transfer:", ethers.utils.formatUnits(receiverBalance, 18));
 
-      // check balances after the send
-      senderBalance = await tokenContract.balanceOf(senderAddress);
-      receiverBalance = await tokenContract.balanceOf(receiverAddress);
-      console.log("Sender balance after transfer:", ethers.utils.formatUnits(senderBalance, 18));
-      console.log("Receiver balance after transfer:", ethers.utils.formatUnits(receiverBalance, 18));
+            if (senderBalance >= sendAmount) {
+
+                // Send the allowed tokens
+                console.log("Sending...",  ethers.utils.parseUnits(sendAmount.toString(), 18));
+                const tx = await tokenContract.transferFrom(senderAddress, receiverAddress, ethers.utils.parseUnits(sendAmount.toString(), 18)); 
+                await tx.wait();
+                console.log("Send complete.");
+
+                // check balances after the send
+                senderBalance = await tokenContract.balanceOf(senderAddress);
+                receiverBalance = await tokenContract.balanceOf(receiverAddress);
+                setSenderBalance(ethers.utils.formatUnits(senderBalance, 18));
+                setReceiverBalance(ethers.utils.formatUnits(receiverBalance, 18));
+                console.log("Sender balance after transfer:", ethers.utils.formatUnits(senderBalance, 18));
+                console.log("Receiver balance after transfer:", ethers.utils.formatUnits(receiverBalance, 18));
+                }
+        }
 
     } catch (error) {
+      setIsTransferring(false);
+      setIsApproving(false);
       console.error("Transfer failed:", error);
     } finally {
       setIsTransferring(false);
+      setIsApproving(false);
     }
-  }
+  };
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+  
+
+    return (
+        <div className="bg-tenderlyPurple flex flex-col items-center justify-center min-h-screen py-2">
       <Head>
         <title>Token Transfer</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/tenderly-logo-2.webp" />
       </Head>
-      <main className="">
-        <div className="flex flex-col items-center">
-          <h1 className="text-4xl font-bold text-center">
-            <span className="to-blue-500 bg-clip-text">
-              Token Transfer 🧰
-            </span>
-          </h1>
-          <h3 className="mt-2 text-gray-400">
-            Transfer Your Tokens on a Tenderly DevNet
-          </h3>
-          <div className="mt-4 flex">
-        {/*}    <ConnectButton /> */}
-            <button
-          className={`ml-2 bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-12 rounded-xl ${
-            isTransferring ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          onClick={handleTransferClick}
-          disabled={isTransferring}
-        >
-          {isTransferring ? 'Transferring...' : 'Transfer Tokens'}
-            </button>
-          </div>
+        <h1 className="text-8xl font-bold text-center">
+        <span className="to-blue-500 bg-clip-text">
+            Token Transfer 🧰
+           
+        </span>
+        </h1>
+        <h3 className="mt-8 mb-24 text-4xl text-white">
+            Send Your Tokens Wallet to Wallet on a Tenderly DevNet
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+            {/* Sender Wallet */}
+            <div className="border-4 border-purple-800 rounded-lg p-4 bg-white max-h-32">
+                <h3 className="text-lg font-bold mb-2">Sender Wallet</h3>
+                <p>Address: {senderAddress}</p>
+                <p>Balance: {senderBalance}</p>
+            </div>
+            {/* Receiver Wallet */}
+            <div className="border-4 border-purple-800 rounded-lg p-4 bg-white max-h-32">
+                <h3 className="text-lg font-bold mb-2">Receiver Wallet</h3>
+                <p>Address: {receiverAddress}</p>
+                <p>Balance: {receiverBalance}</p>
+            </div>
         </div>
-      </main>
-    </div>
-  )
-}
 
-export default Home
+         <div className="mb-12"></div>
+   
+    
+        {/* Transaction Center */}
+
+ {/* Sender Info */}
+ <div className="mb-4 w-1/2">
+                  <p>Current Sender: {senderAddress}</p>
+                  <input
+                    type="text"
+                    onChange={(e) => setSenderAddress(e.target.value) }
+                    className="border-4 border-purple-800 text-black p-2 rounded w-1/2"
+                    placeholder="Input Sender Wallet Address here"
+                  />
+                </div>
+
+                 {/* Receiver Info */}
+ <div className="mb-4 w-1/2">
+                  <p>Current Receiver: {receiverAddress}</p>
+                  <input
+                    type="text"
+                    onChange={(e) => setReceiverAddress(e.target.value)}
+                    className="border-4 border-purple-800 text-black p-2 rounded w-1/2"
+                    placeholder="Input Receiver Wallet Address here"
+                  />
+                </div>
+
+                  {/* Private Key - Consider removing for security */}
+                  <div className="mb-4 w-1/2">
+                <p>Current Sender Private Key: {privateKey}</p>
+                <input
+                  type="text"
+                  onChange={(e) => setPrivateKey(e.target.value)}
+                  className="border-4 border-purple-800 text-black p-2 rounded w-1/2"
+                  placeholder="Enter Dummy Private Key of SENDER Wallet here. DO NOT USE REAL ASSETS!!!!"
+                />
+                </div>
+
+                {/* Network Info */}
+                <div className="mb-4 w-1/2">
+                  <p>Current Network: {providerUrl}</p>
+                  <input
+                    type="text"
+                    onChange={(e) => setProviderUrl(e.target.value)}
+                    className="border-4 border-purple-800 text-black p-2 rounded w-1/2"
+                    placeholder="Input Network RPC URL here. (Either Sepolia or DevNet)"
+                  />
+                </div>
+    
+                 {/* Token Contract Address */}
+                <div className="mb-4 w-1/2">
+                <p>Current Token Contract Address: {tokenAddress}</p>
+                <input
+                  type="text"
+                  
+                  onChange={(e) => setTokenAddress(e.target.value)}
+                  className="border-4 border-purple-800 text-black p-2 rounded w-1/2"
+                  placeholder="Input Token Contract Address here"
+                />
+                </div>
+    
+                 {/* Send Amount */}
+                <div className="mb-4 w-1/2">
+                <p>Amount To Send: {sendAmount}</p>            
+                <input
+                  type="text"
+                  onChange={(e) => setSendAmount(Number(e.target.value))}
+                  className="border-4 border-purple-800 text-black p-2 rounded w-40 mb-4"
+                  placeholder="Amount to Send"
+                
+                />
+    </div>            
+    
+                {/* Buttons */}
+                <div className="flex flex-col items-center justify-center">
+
+                <p className="mt-4 text-white font-bold py-2 px-4 rounded mb-4">Please Approve Prior to Sending</p>
+
+                <button 
+                  style= {{ width: '200px' }} 
+                  onClick={handleApproveClick}
+                  disabled={isApproving}
+                  className="border-4 border-white bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2"
+                >
+                  {isApproving ? 'Approving...' : 'Approve'}
+                </button>
+                
+                </div>
+
+                <div className="flex flex-col items-center justify-center">
+                <p className="mt-4 text-white font-bold py-2 px-4 rounded mb-4">Sender Approved To Send: {allowance}</p>
+    
+                <button
+                  style= {{ width: '200px' }} 
+                  onClick={handleSendClick}
+                  disabled={isTransferring}
+                  className="border-4 border-white bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2"
+                >
+                  {isTransferring ? 'Sending...' : 'Send'}
+                </button>
+</div>
+               
+              </div>
+           
+        
+        
+      );
+    };
+
+export default Home;
