@@ -50,7 +50,9 @@ display-name: erc20TokenTransfer
 
 5. Also open MM and create a new network with the DevNet URL.
 
-7. Also in MM, add the token contract address as a custom token. Do this for both the sender and receiver accounts.
+6. Create 2 new dummy accounts in MM for sender and receiver. Record the PUBLIC addresses for each of the two wallets, and record the PRIVATE key for the account you will use as sender.
+
+7. Also in MM, add the token contract address as a custom token. Do this for both the sender and receiver accounts you just created.
 
 8. Paste the deployed contract address from step 2 into index.tsx as well. This should be the contract on Sepolia. 
 
