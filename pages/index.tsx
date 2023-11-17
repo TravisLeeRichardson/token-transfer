@@ -6,11 +6,21 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const Home = () => {
-    const [tokenAddress, setTokenAddress] = useState<string>("0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f");
-    const [providerUrl, setProviderUrl] = useState<string>("https://sepolia.gateway.tenderly.co/7e3xV20O5VnxjBOvKb0wYy");
-    const [privateKey, setPrivateKey] = useState<string>('fa5568408b1f994003a17d4c91a7b2a71d7ea1175e035753167226c62e0f4db5');
-    const [senderAddress, setSenderAddress] = useState<string>("0xC305f4b9925b9eC6b3D0FCC42B7b22F1245A5011");
-    const [receiverAddress, setReceiverAddress] = useState<string>("0xdb623c0F74d4ed5af4B254327147c4aC7E5d3fAC");
+
+    // Variables to be used in the app
+    const myWallet1Address = '0xC305f4b9925b9eC6b3D0FCC42B7b22F1245A5011';
+    const myWallet2Address = '0xdb623c0F74d4ed5af4B254327147c4aC7E5d3fAC';
+    const myWallet1PrivateKey ='fa5568408b1f994003a17d4c91a7b2a71d7ea1175e035753167226c62e0f4db5';
+    const myWallet2PrivateKey ='ba006e33f250b15f5e276081b16c87c0769d08ec528ac50e0467cd83cd4ae1a6';
+    const myTokenAddress = "0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f";
+    const myRPCUrl = "https://sepolia.gateway.tenderly.co/7e3xV20O5VnxjBOvKb0wYy";
+
+    // State variables
+    const [tokenAddress, setTokenAddress] = useState<string>(myTokenAddress);
+    const [providerUrl, setProviderUrl] = useState<string>(myRPCUrl);
+    const [privateKey, setPrivateKey] = useState<string>(myWallet1PrivateKey);
+    const [senderAddress, setSenderAddress] = useState<string>(myWallet1Address);
+    const [receiverAddress, setReceiverAddress] = useState<string>(myWallet2Address);
     const [senderBalance, setSenderBalance] = useState<string>('');
     const [receiverBalance, setReceiverBalance] = useState<string>('');
     const [isTransferring, setIsTransferring] = useState<boolean>(false);
@@ -23,7 +33,7 @@ const Home = () => {
     const [provider, setProvider] = useState<ethers.providers.JsonRpcProvider | null>(null);
     const [wallet, setWallet] = useState<ethers.Wallet | null>(null);
 
-
+    // Use Effect to set up the provider, wallet, and token contract
   useEffect(() => {
     const newProvider = new ethers.providers.JsonRpcProvider(providerUrl);
     setProvider(newProvider);
@@ -50,6 +60,7 @@ const Home = () => {
     else setNetworkName('Invalid Network');
   }, [providerUrl, privateKey, tokenAddress]);
 
+  // Handle the Approve button click
   const handleApproveClick = async () => {
     
     try {
@@ -72,9 +83,9 @@ const Home = () => {
     }
   };
 
+  // Handle the Send button click
   const handleSendClick = async () => {
     
-
     try {
         setIsTransferring(true);
 
@@ -127,7 +138,6 @@ const Home = () => {
   };
 
   
-
     return (
         <div className="bg-tenderlyPurple flex flex-col items-center justify-center min-h-screen py-2">
       <Head>
