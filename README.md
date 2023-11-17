@@ -4,7 +4,12 @@
 
 # Transfer ERC20 Tokens using DevNets!
 
-## How to install:
+## To Run Tests
+```
+npx hardhat test --network hardhat
+```
+
+## Setup, Install & Run:
 
 1. Deploy Contract To Sepolia
  ```

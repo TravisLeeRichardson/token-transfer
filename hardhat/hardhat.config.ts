@@ -6,8 +6,6 @@ import "hardhat-deploy";
 
 dotenv.config();
 
-console.log ("process.env.ALCHEMY_API_KEY", process.env.ALCHEMY_API_KEY);
-
 const providerApiKey = process.env.ALCHEMY_API_KEY || "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 const tenderlyAccessKey = process.env.TENDERLY_ACCESS_KEY || ""; 
 // If not set, it uses the hardhat account 0 private key.
