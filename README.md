@@ -86,6 +86,8 @@ NOTE: Every time you spin up a new DevNet (They have a 90 minute expiry) you nee
 
 NOTE: If you redploy your token.sol contract (or maybe you'd like to experiment with using your own custom ERC20 contract) for any reason, you will need to execute the above steps again.
 
+NOTE: If you try and Approve or Send, and you receive an error dialog, that means you simply need to respawn a new DEVNET and place the RPC URL in the appropriate field on the page.
+
 CREDITS:
 Token.sol was taken from Dapp University public GitHub Repo here: https://github.com/dappuniversity/erc20_live_coding/blob/main/Token.sol
 
