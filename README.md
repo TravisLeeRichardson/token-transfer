@@ -44,34 +44,47 @@ erc20:
 display-name: erc20TokenTransfer
 ```
 
-3. Spawn a DevNet using the Tendelry Dashboard.
+3. Spawn a new DevNet using the Tendelry Dashboard.
 
-4. Copy the DevNet URL and paste into index.tsx and hardhat.config.ts.
+4. Copy the DevNet URL and paste into index.tsx and hardhat.config.ts. (Alternatively you can paste into the GUI "Current Network" field.)
 
-5. Also open MM and create a new network with the DevNet URL.
+5. Also open MM and create a new network with the DevNet URL. ChainID 11155111 (sepolia).
 
-6. Create 2 new dummy accounts in MM for sender and receiver. Record the PUBLIC addresses for each of the two wallets, and record the PRIVATE key for the account you will use as sender.
+6. Create 2 new dummy accounts in MM for sender and receiver. Record the PUBLIC addresses for each of the two wallets, and record the PRIVATE keys for both of the accounts, as you will use them later.
 
-7. Also in MM, add the token contract address as a custom token. Do this for both the sender and receiver accounts you just created.
+7. Also in MM, import the custom token by adding the token contract address. Do this for both the sender and receiver accounts you just created.
 
-8. Paste the deployed contract address from step 2 into index.tsx as well. This should be the contract on Sepolia. 
+8. Paste the deployed contract address from step 2 into index.tsx as well. This should be the contract on Sepolia. (Alternatively, use the GUI to paste the contract address into the "Current Token Contract Address" field)
 
-9. Edit the two public addresses of the sender and receiver you wish to test (the sender is the wallet you deployed from) in index.tsx.
+9. Edit the two public addresses of the sender and receiver you wish to test (the sender is the wallet you deployed from) in index.tsx. (Alternatively, use the GUI and paste the sender public address into the "Current Sender" field and paste the redeiver public address intot he "Current Receiver" field.)
 
-11.  Run the front end
+11.  Run the front end by executing the folllowing:
 ```
 cd ../pages
 npm run dev
 ```
-12. In your brower, open up localhost:3000. Click the Transfer Button.
 
-13. Open up MM and check that the sender account is decremented by 1 TOK, and the receiver account is incremented by 1 TOK. Should be 999 TOK for sender now and 1 TOK for receiver.
+13. Navigate to https://tenderly-faucet.vercel.app/ and use the Tenderly faucet to give both the sender account as well as the receiver account some ETH for gas.  (Copy and paste the wallet addresses as well as the DEVNET RPC URL and give each 1 eth-> 1000000000000000000 in wei)
+
+14. Navigate to localhost:3000.
+
+15. Enter 1 in the Amount To Send field.
+
+16. Click Approve.
+
+17. Click Transfer.
+
+18. Open up MM and check that the sender account is decremented by 1 TOK, and the receiver account is incremented by 1 TOK. Should be 999 TOK for sender now and 1 TOK for receiver.
+
+19. Now transfer the 1 TOK back to the sender. Reverse the sender and receiver addresses in the GUI. Enter the private key for the sender (the "old" receiver is now the "new" sender, so this is the old receivers private key)
+
+20. Repeat steps 15-17.
 
 NOTE: Every time you spin up a new DevNet (They have a 90 minute expiry) you need to do the following:
---Copy and Paste the new DEVNET RPC URL into the index.tsx file.
+--Copy and Paste the new DEVNET RPC URL into the index.tsx file. (Alternatively, paste it into the GUI's "Current Network" field)
 --Copy and Paste the new DEVNET RPC URL into MetaMask as a new Network, then change your Metamask to that network.
 
-NOTE: If you redploy your token.sol contract for any reason, in addition, you will need to update your YAML file with the new contract address, update the index.tsx with the new contract address, then respawn a DevNet and do what the previous note says.
+NOTE: If you redploy your token.sol contract (or maybe you'd like to experiment with using your own custom ERC20 contract) for any reason, you will need to execute the above steps again.
 
 CREDITS:
 Token.sol was taken from Dapp University public GitHub Repo here: https://github.com/dappuniversity/erc20_live_coding/blob/main/Token.sol
