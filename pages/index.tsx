@@ -42,7 +42,7 @@ function ErrorModal({ isOpen, onClose }: ErrorModalProps) {
       <div className="fixed inset-0 bg-purple-200 bg-opacity-50 flex justify-center items-center">
           <div className="bg-black text-white p-8 rounded-lg shadow-xl">
               <h2 className="text-2xl font-bold mb-4">Error</h2>
-              <p className="mb-6">Please Respawn DevNet and Place the RPC URL in the "Current Network" field.</p>
+              <p className="mb-6">Network Error. Check Your "Current Network" Field and/or Respawn a DevNet.</p>
               <button 
                   onClick={onClose}
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded border-4 border-white"
@@ -133,12 +133,14 @@ function ErrorModal({ isOpen, onClose }: ErrorModalProps) {
                 console.log("Sender balance before transfer:", ethers.utils.formatUnits(senderBalance, 18));
                 console.log("Receiver balance before transfer:", ethers.utils.formatUnits(receiverBalance, 18));
 
-                if (senderBalance >= sendAmount) {
+                if (sendAmount <= senderBalance) {
                     console.log("Sending...", ethers.utils.parseUnits(sendAmount.toString(), 18));
                     const tx = await tokenContract.transferFrom(senderAddress, receiverAddress, ethers.utils.parseUnits(sendAmount.toString(), 18));
                     await tx.wait();
+                    setIsTransferring(false);
                     console.log("Send complete.");
 
+                    // Get the new balances and dsiplay them to the user
                     senderBalance = await tokenContract.balanceOf(senderAddress);
                     receiverBalance = await tokenContract.balanceOf(receiverAddress);
                     setSenderBalance(ethers.utils.formatUnits(senderBalance, 18));
@@ -150,7 +152,6 @@ function ErrorModal({ isOpen, onClose }: ErrorModalProps) {
         } catch (error) {
 
             setIsTransferring(false);
-            setIsApproving(false);
             console.error("Transfer failed:", error);
 
              // Pop Error Reminding User about DevNet Needing spawning
