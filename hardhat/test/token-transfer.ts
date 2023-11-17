@@ -1,183 +1,77 @@
 import "@tenderly/hardhat-tenderly";
 import { expect } from "chai";
-import { BigNumber, Signer } from "ethers";
-import { parseEther } from "ethers/lib/utils";
-import { ethers, tenderly } from "hardhat";
+import { Signer } from "ethers";
+import { ethers } from "hardhat"; // Import Signer from ethers
 import { Token } from "../typechain-types";
 
-describe("Token", () => {
-  let senderAddress = "0xC305f4b9925b9eC6b3D0FCC42B7b22F1245A5011";
-  let receiverAddress = "0xdb623c0F74d4ed5af4B254327147c4aC7E5d3fAC";
-  let privateKey = "fa5568408b1f994003a17d4c91a7b2a71d7ea1175e035753167226c62e0f4db5";
-  let tokenAddress = "0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f";
-  let token: Token | null = null;
-  let signers: Signer[] = [];
+describe("Token transfer tests", function () {
+    let token: Token;
+    let sender: Signer;
+    let receiver: Signer;
+    let initialAmount = ethers.utils.parseUnits("10", 18);
+    let sendAmount = ethers.utils.parseUnits("1", 18);
 
-  let nonOwnerAddress = "0x0000000000000000000000000000000000000000";
-  let nonOwnerSigner = ethers.provider.getSigner(nonOwnerAddress);
-  const recipientAddress = "0xdb623c0F74d4ed5af4B254327147c4aC7E5d3fAC";
-  const sendAmount = parseEther("1.0");
+    beforeEach(async function () {
+        const [deployer, addr1, addr2] = await ethers.getSigners();
+        sender = addr1;
+        receiver = addr2;
 
-  before(async () => {
-   
-    const newProvider = new ethers.providers.JsonRpcProvider(providerUrl);
+        // Deploy contract
+        const TokenFactory = await ethers.getContractFactory("Token", deployer);
+        token = await TokenFactory.deploy("MyToken", "TOK", 18, ethers.utils.parseUnits("1000", 18));
+        await token.deployed();
 
-    const newWallet = new ethers.Wallet(privateKey, newProvider);;
+        // Approve each wallet with 10 TOK each 
+        await token.connect(deployer).approve(await sender.getAddress(), initialAmount);
+        await token.connect(deployer).approve(await receiver.getAddress(), initialAmount);
 
-    const newTokenContract = new ethers.Contract(tokenAddress, token.Token.abi, newWallet);
-    
+        // Populate wallets with 10 TOK each 
+        await token.connect(deployer).transfer(await sender.getAddress(), initialAmount);
+        await token.connect(deployer).transfer(await receiver.getAddress(), initialAmount);      
 
-    signers = s.map(ethers.provider.getSigner);
-
-    nonOwnerAddress = (await ethers.provider.listAccounts())[9];
-    nonOwnerSigner = ethers.provider.getSigner(nonOwnerAddress);
-
-    
-
-    // deploying the contract
-    const tokenFactory = await ethers.getContractFactory(
-      "Token"
-    );
-
-    console.log("Deploying Token...");
-    
- const Token = await ethers.getContractFactory("Token");
- const token = await Token.deploy("Token", "TOK", 18, "1000000000000000000000"); // 1000 tokens
- await token.deployed();
- 
-    // verify in Tenderly (fork)
-    await tenderly.verify({
-      name: "Token",
-      address: token.address,
     });
 
-    console.log("Deployed to:", token.address);
+    it("should allow accounts to approve others to spend tokens", async function () {
+      const spender = receiver;
+      const approvalAmount = ethers.utils.parseUnits("5", 18);
+  
+      await expect(token.connect(sender).approve(await spender.getAddress(), approvalAmount))
+          .to.emit(token, "Approval")
+          .withArgs(await sender.getAddress(), await spender.getAddress(), approvalAmount);
+  
+      expect(await token.allowance(await sender.getAddress(), await spender.getAddress())).to.equal(approvalAmount);
+  });
 
-    // Fund the contract with 10 ETH
-    const fnd = await signers[0].sendTransaction({
-      to: token.address,
-      value: parseEther("10.0"),
+    it("Sender should approve receiver to receive 1 TOK", async function () {
+      
+        // Approve some tokens
+        await expect(token.connect(sender).approve(await receiver.getAddress(), sendAmount))
+        .to.emit(token, "Approval")
+        .withArgs(await sender.getAddress(), await receiver.getAddress(), sendAmount);
+
+        // Check allowance is 1 TOK
+        expect(await token.allowance(await sender.getAddress(), await receiver.getAddress())).to.equal(sendAmount);
+
+        // Sender sends 1 TOK to receiver
+        await expect(token.connect(sender).transfer(await receiver.getAddress(), sendAmount))
+        .to.emit(token, "Transfer")
+        .withArgs(await sender.getAddress(), await receiver.getAddress(), sendAmount);
+
+        // Check balances - sender should have 9 TOK, receiver should have 1 TOK
+        expect(await token.balanceOf(await sender.getAddress())).to.equal(ethers.utils.parseUnits("9", 18));
+        expect(await token.balanceOf(await receiver.getAddress())).to.equal(ethers.utils.parseUnits("11", 18));
     });
-    await fnd.wait();
 
-    console.log("Token Contract funded");
+     
+     it("Transferring more tokens than balance should fail", async function () {
+      const largeAmount = ethers.utils.parseUnits("10000", 18);
+      await expect(token.connect(sender).transfer(await receiver.getAddress(), largeAmount))
+          .to.be.reverted;
   });
 
-  it("accepts Transfer From Owner", async () => {
-   
-    let approveTx = await tokenContract.approve(senderAddress, ethers.utils.parseUnits(sendAmount.toString(), 18)); //send amount is in wei
-    await approveTx.wait();
-    setApproveAmount(ethers.utils.formatUnits(sendAmount, 18));
-
-    const allowance = await tokenContract.allowance(senderAddress, senderAddress); // Owner = Spender
-     setAllowance(ethers.utils.formatUnits(allowance, 18));
-     console.log("Allowance Granted:", ethers.utils.formatUnits(allowance, 18));
-
-
-    await expect(
-      token
-        ?.connect(signers[0])
-        .approve(senderAddress, ethers.utils.parseUnits(sendAmount.toString(), 18))
-    )
-      .to.emit(multisigWallet, "SubmitTransaction")
-      .withArgs(
-        ownerAddresses[0],
-        BigNumber.from(0),
-        recipientAddress,
-        BigNumber.from(1000),
-        "0x"
-      );
+  it("Transferring tokens to zero address should fail", async function () {
+      await expect(token.connect(sender).transfer(ethers.constants.AddressZero, sendAmount))
+          .to.be.reverted;
   });
 
-  it("rejects submit from non-owner", async () => {
-    await expect(
-      multisigWallet
-        ?.connect(nonOwnerSigner)
-        .submitTransaction(recipientAddress, 0, "0x", { gasLimit: 100000 })
-    ).to.be.reverted;
-  });
-
-  it("accepts confirmation from owners", async () => {
-    const submissionTransaction = await multisigWallet
-      ?.connect(signers[0])
-      .submitTransaction(recipientAddress, 1000, "0x");
-    const submissionReceipt = await submissionTransaction?.wait();
-
-    const submissionEvent = submissionReceipt?.events?.filter(
-      (e) => e.event == "SubmitTransaction"
-    );
-    // @ts-ignore
-    const latestTx = (submissionEvent[0].args[1] as BigNumber).toNumber();
-
-    await expect(
-      multisigWallet?.connect(signers[0]).confirmTransaction(latestTx)
-    )
-      .to.emit(multisigWallet, "ConfirmTransaction")
-      .withArgs(ownerAddresses[0], latestTx);
-
-    await expect(
-      multisigWallet?.connect(signers[1]).confirmTransaction(latestTx)
-    )
-      .to.emit(multisigWallet, "ConfirmTransaction")
-      .withArgs(ownerAddresses[1], latestTx);
-  });
-
-  it("rejects confirmation from non-owners", async () => {
-    multisigWallet
-      ?.connect(signers[0])
-      // TODO is gasLimit the way to make ethers send the TX?
-      .submitTransaction(recipientAddress, 1000, "0x");
-
-    await expect(
-      multisigWallet
-        ?.connect(nonOwnerSigner)
-        .confirmTransaction(0, { gasLimit: 100000 })
-    ).to.be.reverted;
-  });
-
-  it("rejects execution with insufficient approval number", async () => {
-    const submission = await multisigWallet
-      ?.connect(signers[0])
-      .submitTransaction(recipientAddress, 1000, "0x");
-    const submissionReceipt = await submission?.wait();
-
-    const submissionEvent = submissionReceipt?.events?.filter(
-      (e) => e.event == "SubmitTransaction"
-    );
-    // @ts-ignore
-    const latestTx = (submissionEvent[0].args[1] as BigNumber).toNumber();
-
-    await multisigWallet?.connect(signers[1]).confirmTransaction(latestTx);
-
-    await expect(
-      multisigWallet
-        ?.connect(signers[2])
-        .executeTransaction(latestTx, { gasLimit: 100000 })
-    ).to.be.reverted;
-  });
-
-  it("accepts execution with required approval number", async () => {
-    const submissionTransaction = await multisigWallet
-      ?.connect(signers[0])
-      .submitTransaction(recipientAddress, 1000, "0x");
-    const submissionReceipt = await submissionTransaction?.wait();
-
-    const submissionEvent = submissionReceipt?.events?.filter(
-      (e) => e.event == "SubmitTransaction"
-    );
-    // @ts-ignore
-    const latestTx = (submissionEvent[0].args[1] as BigNumber).toNumber();
-
-    await multisigWallet?.connect(signers[0]).confirmTransaction(latestTx);
-
-    await multisigWallet?.connect(signers[1]).confirmTransaction(latestTx);
-
-    await expect(
-      multisigWallet
-        ?.connect(signers[2])
-        .executeTransaction(latestTx, { gasLimit: 100000 })
-    )
-      .to.emit(multisigWallet, "ExecuteTransaction")
-      .withArgs(ownerAddresses[2], latestTx);
-  });
 });
