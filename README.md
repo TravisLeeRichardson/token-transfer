@@ -88,6 +88,8 @@ NOTE: If you redploy your token.sol contract (or maybe you'd like to experiment 
 
 NOTE: If you try and Approve or Send, and you receive an error dialog, that means you simply need to respawn a new DEVNET and place the RPC URL in the appropriate field on the page.
 
+NOTE: We have included code in the deployToken.ts script to automatically take the resulting .json, post-deployment, and send it to the front-end. This means that the front-end should will immediately have access to the newly deployed contract upon refreshing localhost:3000.
+
 CREDITS:
 Token.sol was taken from Dapp University public GitHub Repo here: https://github.com/dappuniversity/erc20_live_coding/blob/main/Token.sol
 
