@@ -27,7 +27,7 @@ const config: HardhatUserConfig = {
       },
     },
     tenderly: {
-      url: "https://rpc.vnet.tenderly.co/devnet/erc20tokentransfer/142549d2-3369-4003-86b7-dc1f5515d181",
+      url: "https://rpc.vnet.tenderly.co/devnet/token-transfer/47905588-e117-4cfb-8edb-0f836d0278b8",
       chainId: 11155111,
     },
     sepolia: {
@@ -42,7 +42,7 @@ const config: HardhatUserConfig = {
   },
   tenderly: {
     username: "tlrichar",
-    project: "token-transfer",
+    project: "project",
   },
   verify: {
     etherscan: {

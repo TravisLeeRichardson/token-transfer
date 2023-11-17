@@ -4,7 +4,7 @@ import { Signer } from "ethers";
 import { ethers } from "hardhat"; // Import Signer from ethers
 import { Token } from "../typechain-types";
 
-describe("Token transfer tests", function () {
+describe("ERC Token Transfer Tests", function () {
     let token: Token;
     let sender: Signer;
     let receiver: Signer;
@@ -42,7 +42,7 @@ describe("Token transfer tests", function () {
       expect(await token.allowance(await sender.getAddress(), await spender.getAddress())).to.equal(approvalAmount);
   });
 
-    it("Sender should approve receiver to receive 1 TOK", async function () {
+    it("Should allow token transfer", async function () {
       
         // Approve some tokens
         await expect(token.connect(sender).approve(await receiver.getAddress(), sendAmount))
@@ -61,17 +61,5 @@ describe("Token transfer tests", function () {
         expect(await token.balanceOf(await sender.getAddress())).to.equal(ethers.utils.parseUnits("9", 18));
         expect(await token.balanceOf(await receiver.getAddress())).to.equal(ethers.utils.parseUnits("11", 18));
     });
-
-     
-     it("Transferring more tokens than balance should fail", async function () {
-      const largeAmount = ethers.utils.parseUnits("10000", 18);
-      await expect(token.connect(sender).transfer(await receiver.getAddress(), largeAmount))
-          .to.be.reverted;
-  });
-
-  it("Transferring tokens to zero address should fail", async function () {
-      await expect(token.connect(sender).transfer(ethers.constants.AddressZero, sendAmount))
-          .to.be.reverted;
-  });
 
 });

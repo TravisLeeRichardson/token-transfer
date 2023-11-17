@@ -10,7 +10,7 @@ export function updateFrontEndNetworkInfo(
   tenderlyProject: string,
 ) {
   writeFileSync(
-    "../frontend/tenderly.json",
+    "../pages/tenderly.json",
     JSON.stringify({
       network: devnetConfig,
       project: tenderlyProject,
