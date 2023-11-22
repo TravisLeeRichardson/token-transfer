@@ -9,10 +9,10 @@ dotenv.config();
 const Home = () => {
    
     const myTokenAddress = "0x1756a8D1f35CC5B97cc1237F82254CF466dbC83f";
-  
+    //const myRPCUrl = "https://sepolia.gateway.tenderly.co/7e3xV20O5VnxjBOvKb0wYy";
 
     // State variables
-    
+    const [selectedNetwork, setSelectedNetwork] = useState("Tenderly Sepolia");
     const [tokenAddress, setTokenAddress] = useState<string>(myTokenAddress);
     const [providerUrl, setProviderUrl] = useState<string>('');
     const [newSenderWallet, setNewSenderWallet] = useState<ethers.Wallet | null>(null);
@@ -33,49 +33,76 @@ const Home = () => {
 
     const createNewWallet = async (isSender: boolean): Promise<ethers.Wallet> => {
       const newWallet: ethers.Wallet = ethers.Wallet.createRandom();
+      if (newProvider) {
       if (isSender) {
-          setNewSenderWallet(newWallet);
+          setNewSenderWallet(newWallet.connect(newProvider));
       } else {
-          setNewReceiverWallet(newWallet);
-      }
+          setNewReceiverWallet(newWallet.connect(newProvider));
+      } 
+    
+  }  else {
 
-      return newWallet; 
+    if (isSender) {
+      setNewSenderWallet(newWallet);
+  } else {
+      setNewReceiverWallet(newWallet);
+  } 
 
+
+  }
+
+  return newWallet; 
   };
+
+  
+/*   const setDevNet2 = async (network: string) => {
+    if (network !== '') {
+    console.log("🔗 Connecting to Provider at URL...", network);
+    const provider = new ethers.providers.JsonRpcProvider(network);
+    setNewProvider(provider);
+  
+    if (newSenderWallet) {
+    // Create the token contract with the connected sender wallet
+    const newTokenContract = new ethers.Contract(tokenAddress, token.Token.abi, newSenderWallet);
+    setTokenContract(newTokenContract);
+    console.log("✅ Connected to Token Contract");
+    } }
+  }; */
+  
 
   const setDevNet = async (network: string) => {
     if (network !== '') {
-      console.log("🔗 Connecting to Provider at URL...", network);
-      const provider = new ethers.providers.JsonRpcProvider(network);
+    console.log("🔗 Connecting to Provider at URL...", network);
+    const provider = new ethers.providers.JsonRpcProvider(network);
+    setNewProvider(provider);
   
-      // Connect existing wallets to the new provider or create new wallets if they don't exist
-      let senderWallet = newSenderWallet ? newSenderWallet.connect(provider) : ethers.Wallet.createRandom().connect(provider);
-      let receiverWallet = newReceiverWallet ? newReceiverWallet.connect(provider) : ethers.Wallet.createRandom().connect(provider);
-    
-      // Set the wallets in the state
-      setNewSenderWallet(senderWallet);
-      setNewReceiverWallet(receiverWallet);
-    
-      // Create the token contract with the connected sender wallet
-      const newTokenContract = new ethers.Contract(tokenAddress, token.Token.abi, senderWallet);
-      setTokenContract(newTokenContract);
-      console.log("✅ Connected to Token Contract");
-    }
+    if (newSenderWallet) {
+    // Create the token contract with the connected sender wallet
+    const newTokenContract = new ethers.Contract(tokenAddress, token.Token.abi, newSenderWallet);
+    setTokenContract(newTokenContract);
+    console.log("✅ Connected to Token Contract");
+    } }
   };
-
-
+  
+  // Ensure that this function is called appropriately in your component, such as in a useEffect or in response to user input
 
 // check if wallet balances change every one second
 const refreshBalances = async () => {
   try {
       if (newSenderWallet && newReceiverWallet && tokenContract) {
 
+         console.log("📡 Refreshing balances..."); 
           let senderBalance = await tokenContract.balanceOf(newSenderWallet.address);
           let receiverBalance = await tokenContract.balanceOf(newReceiverWallet.address);
 
+          console.log("Sender balance before transfer:", ethers.utils.formatUnits(senderBalance, 18), "for sender wallet:", newSenderWallet.address );
+          console.log("Receiver balance before transfer:", ethers.utils.formatUnits(receiverBalance, 18));
+          console.log("current network is:", ((await tokenContract.provider.getNetwork()).name));
+
           setSenderBalance(ethers.utils.formatUnits(senderBalance, 18));
           setReceiverBalance(ethers.utils.formatUnits(receiverBalance, 18));
-        
+          console.log("Sender balance after transfer:", ethers.utils.formatUnits(senderBalance, 18)); 
+          console.log("Receiver balance after transfer:", ethers.utils.formatUnits(receiverBalance, 18));
       }
   } catch (error) {
       console.error("Error refreshing wallets and/or contracts:", error); 
@@ -84,7 +111,7 @@ const refreshBalances = async () => {
 
 
 useEffect(() => {
-  const interval = setInterval(refreshBalances, 1000); // Refresh every 1000 milliseconds (1 second)
+  const interval = setInterval(refreshBalances, 10000); // Refresh every 1000 milliseconds (1 second)
   return () => clearInterval(interval); // Clear interval on component unmount
 }, [newSenderWallet, newReceiverWallet, tokenContract]);
     type ErrorModalProps = {
